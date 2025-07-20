@@ -3,11 +3,19 @@ import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
+import { useEffect } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { Colors } from '@/constants/Colors';
 
 export default function RootLayout() {
+  // DEV ONLY: Reset inbox and plan state on every app start
+  useEffect(() => {
+    AsyncStorage.removeItem('hasFitnessPlan');
+    AsyncStorage.removeItem('readMessages');
+  }, []);
+
   const colorScheme = useColorScheme();
   const [loaded] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),

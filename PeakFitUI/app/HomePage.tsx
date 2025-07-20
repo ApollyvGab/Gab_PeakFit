@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { Colors } from '@/constants/Colors';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 type FeatherIconName = keyof typeof Feather.glyphMap;
 
@@ -13,8 +14,42 @@ const tabs: { key: string; label: string; icon: FeatherIconName }[] = [
 ];
 
 export default function HomePage() {
-  const [activeTab, setActiveTab] = useState('fitness');
   const router = useRouter();
+  const params = useLocalSearchParams();
+  const [activeTab, setActiveTab] = useState('fitness');
+  const [hasFitnessPlan, setHasFitnessPlan] = useState(false);
+  const [loadingInbox, setLoadingInbox] = useState(true);
+  const [openMessage, setOpenMessage] = useState<null | 'welcome' | 'plan'>(null);
+  const [readMessages, setReadMessages] = useState<{ [key: string]: boolean }>({});
+
+  useEffect(() => {
+    if (params.tab && typeof params.tab === 'string') {
+      setActiveTab(params.tab);
+    }
+  }, [params.tab]);
+
+  useEffect(() => {
+    AsyncStorage.getItem('hasFitnessPlan').then(val => {
+      setHasFitnessPlan(val === 'true');
+      setLoadingInbox(false);
+    });
+  }, []);
+
+  // Load readMessages from AsyncStorage on mount
+  useEffect(() => {
+    AsyncStorage.getItem('readMessages').then(val => {
+      if (val) {
+        try {
+          setReadMessages(JSON.parse(val));
+        } catch {}
+      }
+    });
+  }, []);
+
+  // Save readMessages to AsyncStorage whenever it changes
+  useEffect(() => {
+    AsyncStorage.setItem('readMessages', JSON.stringify(readMessages));
+  }, [readMessages]);
 
   return (
     <View style={styles.container}>
@@ -29,36 +64,122 @@ export default function HomePage() {
       {/* Main Content with dark background */}
       <View style={styles.mainArea}>
         <View style={styles.content}>
-          <Text style={styles.pageTitle}>{tabs.find(t => t.key === activeTab)?.label}</Text>
-          <View style={styles.tabContent}>
-            {activeTab === 'fitness' ? (
+            {activeTab === 'inbox' ? (
+              <View style={styles.inboxContainer}>
+                {openMessage === null ? (
+                  <>
+                    <Text style={[styles.pageTitle, styles.inboxTitleTop]}>Inbox</Text>
+                    {loadingInbox ? (
+                      <Text style={styles.inboxPreview}>Loading...</Text>
+                    ) : (
+                      <>
+                        {hasFitnessPlan && (
+                          <TouchableOpacity
+                            style={styles.inboxItem}
+                            activeOpacity={0.8}
+                            onPress={() => {
+                              setOpenMessage('plan');
+                              setReadMessages(prev => ({ ...prev, plan: true }));
+                            }}
+                          >
+                            <View style={styles.inboxRow}>
+                              <View style={[styles.unreadDot, readMessages['plan'] ? styles.readDot : styles.unreadDotActive]} />
+                              <Text style={[styles.inboxTitle, !readMessages['plan'] && styles.inboxTitleUnread]}>Sample Fitness Plan</Text>
+                            </View>
+                            <Text style={styles.inboxDate}>Received: June 1, 2024, 10:30 AM</Text>
+                            <Text style={styles.inboxPreview}>Here is your personalized fitness plan.</Text>
+                          </TouchableOpacity>
+                        )}
+                        <TouchableOpacity
+                          style={styles.inboxItem}
+                          activeOpacity={0.8}
+                          onPress={() => {
+                            setOpenMessage('welcome');
+                            setReadMessages(prev => ({ ...prev, welcome: true }));
+                          }}
+                        >
+                          <View style={styles.inboxRow}>
+                            <View style={[styles.unreadDot, readMessages['welcome'] ? styles.readDot : styles.unreadDotActive]} />
+                            <Text style={[styles.inboxTitle, !readMessages['welcome'] && styles.inboxTitleUnread]}>Welcome to PeakFit</Text>
+                          </View>
+                          <Text style={styles.inboxDate}>Received: June 1, 2024, 09:00 AM</Text>
+                          <Text style={styles.inboxPreview}>We're excited to have you on board! Start your fitness journey...</Text>
+                        </TouchableOpacity>
+                      </>
+                    )}
+                  </>
+                ) : (
+                  <View style={styles.messageView}>
+                    <View style={styles.messageHeader}>
+                      <TouchableOpacity style={styles.messageBackBtn} onPress={() => setOpenMessage(null)}>
+                        <Feather name="chevron-left" size={28} color={Colors.light.accent} />
+                      </TouchableOpacity>
+                      <Text style={styles.messageTitle}>
+                        {openMessage === 'plan' ? 'Sample Fitness Plan' : 'Welcome to PeakFit'}
+                      </Text>
+                    </View>
+                    <View style={styles.messageContent}>
+                      {openMessage === 'plan' ? (
+                        <>
+                          <Text style={styles.inboxDate}>Received: June 1, 2024, 10:30 AM</Text>
+                          <Text style={styles.messageBody}>Here is your personalized fitness plan. (This is a sample message. In a real app, you would see your plan details here.)</Text>
+                        </>
+                      ) : (
+                        <>
+                          <Text style={styles.inboxDate}>Received: June 1, 2024, 09:00 AM</Text>
+                          <Text style={styles.messageBody}>We're excited to have you on board! Start your fitness journey with personalized plans and support from our team. If you have any questions, feel free to reach out. Welcome to the PeakFit family!</Text>
+                        </>
+                      )}
+                    </View>
+                  </View>
+                )}
+              </View>
+            ) : (
               <>
-                <Text style={styles.tabText}>Nothing here for now</Text>
-                <TouchableOpacity style={styles.createButton} onPress={() => router.push('/CreateFitnessPlan')}>
-                  <Text style={styles.createButtonText}>Create Fitness Plan</Text>
-                </TouchableOpacity>
+                <Text style={styles.pageTitle}>{tabs.find(t => t.key === activeTab)?.label}</Text>
+                <View style={styles.tabContent}>
+                  {activeTab === 'fitness' ? (
+                    <>
+                      <Text style={styles.tabText}>Nothing here for now</Text>
+                      <TouchableOpacity style={styles.createButton} onPress={() => router.push('/CreateFitnessPlan')}>
+                        <Text style={styles.createButtonText}>Create Fitness Plan</Text>
+                      </TouchableOpacity>
+                    </>
+                  ) : null}
+                </View>
               </>
-            ) : null}
+            )}
           </View>
-        </View>
       </View>
       {/* Bottom Tab Bar */}
       <View style={styles.tabBar}>
-        {tabs.map(tab => (
-          <TouchableOpacity
-            key={tab.key}
-            style={[styles.tabButton, activeTab === tab.key && styles.tabButtonActive]}
-            onPress={() => setActiveTab(tab.key)}
-          >
-            <Feather
-              name={tab.icon}
-              size={24}
-              color={activeTab === tab.key ? '#fff' : '#BFC5CA'} // white for active, muted for inactive
-              style={{ marginBottom: 4 }}
-            />
-            <Text style={[styles.tabLabel, activeTab === tab.key && styles.tabLabelActive]}>{tab.label}</Text>
-          </TouchableOpacity>
-        ))}
+        {tabs.map(tab => {
+          // Determine if this is the Inbox tab and if there are unread messages
+          let showBadge = false;
+          if (tab.key === 'inbox') {
+            showBadge = !readMessages['welcome'] || (hasFitnessPlan && !readMessages['plan']);
+          }
+          return (
+            <TouchableOpacity
+              key={tab.key}
+              style={[styles.tabButton, activeTab === tab.key && styles.tabButtonActive]}
+              onPress={() => setActiveTab(tab.key)}
+            >
+              <View style={{ position: 'relative', alignItems: 'center' }}>
+                <Feather
+                  name={tab.icon}
+                  size={24}
+                  color={activeTab === tab.key ? '#fff' : '#BFC5CA'}
+                  style={{ marginBottom: 4 }}
+                />
+                {showBadge && (
+                  <View style={styles.tabBadge} />
+                )}
+              </View>
+              <Text style={[styles.tabLabel, activeTab === tab.key && styles.tabLabelActive]}>{tab.label}</Text>
+            </TouchableOpacity>
+          );
+        })}
       </View>
     </View>
   );
@@ -180,4 +301,130 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-}); 
+  inboxItem: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 20,
+    marginVertical: 12,
+    alignItems: 'flex-start',
+    width: 300,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: '#343A40',
+  },
+  inboxTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: Colors.light.accent,
+    marginBottom: 6,
+    fontFamily: 'SpaceMono',
+  },
+  inboxDate: {
+    fontSize: 14,
+    color: '#7B8A8B',
+    fontFamily: 'SpaceMono',
+  },
+  inboxPreview: {
+    fontSize: 15,
+    color: '#23272A',
+    fontFamily: 'SpaceMono',
+    marginTop: 2,
+  },
+  inboxContainer: {
+    flex: 1,
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    marginTop: 0,
+  },
+  inboxTitleTop: {
+    marginTop: 24,
+  },
+  messageView: {
+    flex: 1,
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    paddingTop: 56,
+  },
+  messageHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+    width: '90%',
+    position: 'relative',
+    justifyContent: 'center',
+  },
+  messageBackBtn: {
+    position: 'absolute',
+    left: 0,
+    padding: 4,
+    borderRadius: 20,
+    zIndex: 1,
+  },
+  messageTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: Colors.light.accent,
+    fontFamily: 'SpaceMono',
+    textAlign: 'center',
+    flex: 1,
+  },
+  messageContent: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 20,
+    width: 300,
+    borderWidth: 1,
+    borderColor: '#343A40',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  messageBody: {
+    fontSize: 16,
+    color: '#23272A',
+    fontFamily: 'SpaceMono',
+    marginTop: 8,
+  },
+  inboxRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 2,
+  },
+  unreadDot: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    marginRight: 12,
+    backgroundColor: '#D3D4DB', // default gray
+  },
+  unreadDotActive: {
+    backgroundColor: Colors.light.accent,
+  },
+  readDot: {
+    backgroundColor: '#D3D4DB',
+  },
+  inboxTitleUnread: {
+    fontWeight: 'bold',
+    color: Colors.light.accent,
+  },
+  tabBadge: {
+    position: 'absolute',
+    top: -2,
+    right: -8,
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: '#C0392B', // red badge
+    borderWidth: 2,
+    borderColor: '#343A40',
+    zIndex: 2,
+  },
+});   
