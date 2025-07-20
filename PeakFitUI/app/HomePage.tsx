@@ -20,10 +20,12 @@ export default function HomePage() {
     <View style={styles.container}>
       {/* Top Bar with Logo */}
       <View style={styles.topBar}>
-        <View style={{ flex: 1 }} />
         <Image source={require('@/assets/images/PeakFit Logo.png')} style={styles.logoImage} />
+        <View style={{ flex: 1 }} />
+        <TouchableOpacity style={styles.settingsButton}>
+          <Feather name="settings" size={28} color="#fff" />
+        </TouchableOpacity>
       </View>
-      <View style={styles.topDivider} />
       {/* Main Content with dark background */}
       <View style={styles.mainArea}>
         <View style={styles.content}>
@@ -51,7 +53,7 @@ export default function HomePage() {
             <Feather
               name={tab.icon}
               size={24}
-              color={activeTab === tab.key ? '#fff' : Colors.light.accent}
+              color={activeTab === tab.key ? '#fff' : '#BFC5CA'} // white for active, muted for inactive
               style={{ marginBottom: 4 }}
             />
             <Text style={[styles.tabLabel, activeTab === tab.key && styles.tabLabelActive]}>{tab.label}</Text>
@@ -70,18 +72,24 @@ const styles = StyleSheet.create({
   topBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'flex-end',
+    justifyContent: 'flex-start',
     marginTop: 40,
-    marginBottom: 8,
+    marginBottom: 0,
     paddingHorizontal: 16,
+    paddingVertical: 10, // increase vertical coverage
+    minHeight: 80, // ensure minimum height
+    backgroundColor: '#343A40', // match CreateFitnessPlan and bottom tab bar
+    borderBottomWidth: 2,
+    borderBottomColor: Colors.light.accent,
   },
   logoImage: {
-    width: 64,
-    height: 48,
+    width: 80,
+    height: 55,
     borderRadius: 16,
     resizeMode: 'cover',
     borderWidth: 1,
     borderColor: Colors.light.accent,
+    backgroundColor: '#23272A', // subtle bg for contrast if needed
   },
   mainArea: {
     flex: 1,
@@ -112,7 +120,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     borderTopWidth: 1,
     borderColor: Colors.light.accent,
-    backgroundColor: Colors.light.background,
+    backgroundColor: '#343A40', // match CreateFitnessPlan top bar
     paddingVertical: 16,
     paddingHorizontal: 8,
   },
@@ -123,16 +131,16 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   tabButtonActive: {
-    backgroundColor: '#F8EAEA',
+    backgroundColor: 'rgba(255,255,255,0.08)', // subtle highlight on dark bg
   },
   tabLabel: {
-    color: Colors.light.accent,
+    color: '#BFC5CA', // muted light gray for inactive
     fontFamily: 'SpaceMono',
     fontSize: 14,
     fontWeight: 'bold',
   },
   tabLabelActive: {
-    color: '#fff',
+    color: '#fff', // white for active
     backgroundColor: Colors.light.accent,
     paddingHorizontal: 12,
     paddingVertical: 4,
@@ -165,5 +173,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: 'SpaceMono',
     letterSpacing: 1,
+  },
+  settingsButton: {
+    padding: 8,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 }); 
