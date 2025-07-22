@@ -122,7 +122,7 @@ export default function HomePage() {
                       {openMessage === 'plan' ? (
                         <>
                           <Text style={styles.inboxDate}>Received: June 1, 2024, 10:30 AM</Text>
-                          <Text style={styles.messageBody}>Here is your personalized fitness plan. (This is a sample message. In a real app, you would see your plan details here.)</Text>
+                          <Text style={styles.messageBody}>Here is your personalized fitness plan. You can view it on your My Fitness Page.</Text>
                         </>
                       ) : (
                         <>
@@ -138,13 +138,48 @@ export default function HomePage() {
               <>
                 <Text style={styles.pageTitle}>{tabs.find(t => t.key === activeTab)?.label}</Text>
                 <View style={styles.tabContent}>
-                  {activeTab === 'fitness' ? (
+                  {activeTab === 'fitness' && !hasFitnessPlan ? (
                     <>
                       <Text style={styles.tabText}>Nothing here for now</Text>
                       <TouchableOpacity style={styles.createButton} onPress={() => router.push('/CreateFitnessPlan')}>
                         <Text style={styles.createButtonText}>Create Fitness Plan</Text>
                       </TouchableOpacity>
                     </>
+                  ) : null}
+                  {activeTab === 'fitness' && hasFitnessPlan ? (
+                    <View style={styles.fitnessDashboard}>
+                      <TouchableOpacity style={styles.fitnessCard} activeOpacity={0.85} onPress={() => router.push('/FitnessPlanView')}>
+                        <Feather name="calendar" size={32} color={Colors.light.accent} style={{ marginRight: 12 }} />
+                        <View>
+                          <Text style={styles.fitnessCardTitle}>Fitness Plan</Text>
+                          <Text style={styles.fitnessCardDesc}>View your Fitness Plan</Text>
+                        </View>
+                      </TouchableOpacity>
+                      <TouchableOpacity style={styles.fitnessCard} activeOpacity={0.85}>
+                        <Feather name="activity" size={32} color={Colors.light.accent} style={{ marginRight: 12 }} />
+                        <View>
+                          <Text style={styles.fitnessCardTitle}>Start Workout Session</Text>
+                          <Text style={styles.fitnessCardDesc}>Start and Log your gym session</Text>
+                        </View>
+                      </TouchableOpacity>
+                      <TouchableOpacity style={styles.fitnessCard} activeOpacity={0.85}>
+                        <Feather name="bar-chart-2" size={32} color={Colors.light.accent} style={{ marginRight: 12 }} />
+                        <View>
+                          <Text style={styles.fitnessCardTitle}>Fitness Stats</Text>
+                          <Text style={styles.fitnessCardDesc}>View your Fitness Stats</Text>
+                        </View>
+                      </TouchableOpacity>
+                      <TouchableOpacity style={styles.fitnessCard} activeOpacity={0.85}>
+                        <Feather name="clipboard" size={32} color={Colors.light.accent} style={{ marginRight: 12 }} />
+                        <View>
+                          <Text style={styles.fitnessCardTitle}>Update Progress</Text>
+                          <Text style={styles.fitnessCardDesc}>
+                            {`Upgrade your Fitness Progress
+for Tracking`}
+                          </Text>
+                        </View>
+                      </TouchableOpacity>
+                    </View>
                   ) : null}
                 </View>
               </>
@@ -426,5 +461,41 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#343A40',
     zIndex: 2,
+  },
+  fitnessDashboard: {
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 12,
+  },
+  fitnessCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#E6FAF1',
+    borderRadius: 16,
+    borderWidth: 1.5,
+    borderColor: Colors.light.accent,
+    paddingVertical: 18,
+    paddingHorizontal: 20,
+    marginVertical: 12,
+    width: 320,
+    shadowColor: Colors.light.accent,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 1,
+  },
+  fitnessCardTitle: {
+    fontSize: 17,
+    fontWeight: 'bold',
+    color: Colors.light.accent,
+    fontFamily: 'SpaceMono',
+    marginBottom: 2,
+  },
+  fitnessCardDesc: {
+    fontSize: 15,
+    color: '#23272A',
+    fontFamily: 'SpaceMono',
+    opacity: 0.8,
   },
 });   
