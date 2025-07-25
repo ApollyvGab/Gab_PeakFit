@@ -21,6 +21,7 @@ export default function HomePage() {
   const [loadingInbox, setLoadingInbox] = useState(true);
   const [openMessage, setOpenMessage] = useState<null | 'welcome' | 'plan'>(null);
   const [readMessages, setReadMessages] = useState<{ [key: string]: boolean }>({});
+  const [showSettingsMenu, setShowSettingsMenu] = useState(false);
 
   useEffect(() => {
     if (params.tab && typeof params.tab === 'string') {
@@ -57,9 +58,16 @@ export default function HomePage() {
       <View style={styles.topBar}>
         <Image source={require('@/assets/images/PeakFit Logo.png')} style={styles.logoImage} />
         <View style={{ flex: 1 }} />
-        <TouchableOpacity style={styles.settingsButton}>
+        <TouchableOpacity style={styles.settingsButton} onPress={() => setShowSettingsMenu(v => !v)}>
           <Feather name="settings" size={28} color="#fff" />
         </TouchableOpacity>
+        {showSettingsMenu && (
+          <View style={styles.settingsMenu}>
+            <TouchableOpacity style={styles.settingsMenuItem} onPress={() => { setShowSettingsMenu(false); router.push('/Login'); }}>
+              <Text style={styles.settingsMenuText}>Log Out</Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
       {/* Main Content with dark background */}
       <View style={styles.mainArea}>
@@ -497,5 +505,32 @@ const styles = StyleSheet.create({
     color: '#23272A',
     fontFamily: 'SpaceMono',
     opacity: 0.8,
+  },
+  settingsMenu: {
+    position: 'absolute',
+    top: 56,
+    right: 16,
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    borderWidth: 1.5,
+    borderColor: '#343A40',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 4,
+    minWidth: 120,
+    zIndex: 100,
+  },
+  settingsMenuItem: {
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    alignItems: 'flex-start',
+  },
+  settingsMenuText: {
+    color: Colors.light.accent,
+    fontSize: 16,
+    fontFamily: 'SpaceMono',
+    fontWeight: 'bold',
   },
 });   
